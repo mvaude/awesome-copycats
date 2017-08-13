@@ -108,7 +108,7 @@ local binclock = require("themes.powerarrow.binclock"){
 
 -- Calendar
 theme.cal = lain.widget.calendar({
-    --cal = "cal --color=always",
+    cal = "cal --color=always -m -Y",
     attach_to = { binclock.widget },
     notification_preset = {
         font = "xos4 Terminus 10",
@@ -131,13 +131,13 @@ scissors:buttons(awful.util.table.join(awful.button({}, 1, function() awful.spaw
 
 -- Mail IMAP check
 local mailicon = wibox.widget.imagebox(theme.widget_mail)
---[[ commented because it needs to be set before use
 mailicon:buttons(awful.util.table.join(awful.button({ }, 1, function () awful.spawn(mail) end)))
 local mail = lain.widget.imap({
     timeout  = 180,
-    server   = "server",
-    mail     = "mail",
-    password = "keyring get mail",
+    server   = "imap.gmail.com",
+    mail     = "maxime.vaude@gmail.com",
+    password = "ChloeMyLove69",
+    is_plain = true,
     settings = function()
         if mailcount > 0 then
             widget:set_text(" " .. mailcount .. " ")
@@ -146,9 +146,13 @@ local mail = lain.widget.imap({
             widget:set_text("")
             mailicon:set_image(theme.widget_mail)
         end
-    end
+    end,
+    notification_preset = {
+        font = "xos4 Terminus 10",
+        fg   = theme.fg_normal,
+        bg   = theme.bg_normal
+    }
 })
---]]
 
 -- ALSA volume
 theme.volume = lain.widget.alsabar({
@@ -207,7 +211,7 @@ local cpu = lain.widget.cpu({
 })
 
 --[[ Coretemp (lm_sensors, per core)
-local tempwidget = awful.widget.watch({awful.util.shell, '-c', 'sensors | grep Core'}, 30,
+local temp = awful.widget.watch({awful.util.shell, '-c', 'sensors | grep Core'}, 30,
 function(widget, stdout)
     local temps = ""
     for line in stdout:gmatch("[^\r\n]+") do
@@ -231,11 +235,12 @@ theme.fs = lain.widget.fs({
     options  = "--exclude-type=tmpfs",
     notification_preset = { fg = theme.fg_normal, bg = theme.bg_normal, font = "xos4 Terminus 10" },
     settings = function()
-        widget:set_markup(markup.font(theme.font, " " .. fs_now.available_gb .. "GB "))
+	local home_used = tonumber(fs_info["/home used_p"]) or 0
+        widget:set_markup(markup.font(theme.font, " / " .. fs_now.used .. "% | /home " .. home_used .. "% "))
     end
 })
 
--- Battery
+--[[ Battery
 local baticon = wibox.widget.imagebox(theme.widget_battery)
 local bat = lain.widget.bat({
     settings = function()
@@ -258,6 +263,7 @@ local bat = lain.widget.bat({
         end
     end
 })
+--]] 
 
 -- Net
 local neticon = wibox.widget.imagebox(theme.widget_net)
@@ -341,19 +347,19 @@ function theme.at_screen_connect(s)
             layout = wibox.layout.fixed.horizontal,
             wibox.widget.systray(),
             wibox.container.margin(scissors, 4, 8),
-            --[[ using shapes
+            -- using shapes
             pl(wibox.widget { mpdicon, theme.mpd.widget, layout = wibox.layout.align.horizontal }, "#343434"),
             pl(task, "#343434"),
-            --pl(wibox.widget { mailicon, mail and mail.widget, layout = wibox.layout.align.horizontal }, "#343434"),
+            pl(wibox.widget { mailicon, mail and mail.widget, layout = wibox.layout.align.horizontal }, "#343434"),
             pl(wibox.widget { memicon, mem.widget, layout = wibox.layout.align.horizontal }, "#777E76"),
             pl(wibox.widget { cpuicon, cpu.widget, layout = wibox.layout.align.horizontal }, "#4B696D"),
             pl(wibox.widget { tempicon, temp.widget, layout = wibox.layout.align.horizontal }, "#4B3B51"),
             pl(wibox.widget { fsicon, theme.fs.widget, layout = wibox.layout.align.horizontal }, "#CB755B"),
-            pl(wibox.widget { baticon, bat.widget, layout = wibox.layout.align.horizontal }, "#8DAA9A"),
+            --pl(wibox.widget { baticon, bat.widget, layout = wibox.layout.align.horizontal }, "#8DAA9A"),
             pl(wibox.widget { neticon, net.widget, layout = wibox.layout.align.horizontal }, "#C0C0A2"),
             pl(binclock.widget, "#777E76"),
             --]]
-            -- using separators
+            --[[ using separators
             arrow(theme.bg_normal, "#343434"),
             wibox.container.background(wibox.container.margin(wibox.widget { mailicon, mail and mail.widget, layout = wibox.layout.align.horizontal }, 4, 7), "#343434"),
             arrow("#343434", theme.bg_normal),

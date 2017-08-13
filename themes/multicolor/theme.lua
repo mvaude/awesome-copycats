@@ -128,18 +128,19 @@ theme.fs = lain.widget.fs({
     options = "--exclude-type=tmpfs",
     notification_preset = { font = "xos4 Terminus 10", fg = theme.fg_normal },
     settings  = function()
-        widget:set_markup(markup.fontfg(theme.font, "#80d9d8", fs_now.used .. "% "))
+	local home_used = tonumber(fs_info["/home used_p"]) or 0
+        widget:set_markup(markup.fontfg(theme.font, "#80d9d8", "/ " .. fs_now.used .. "% | /home " .. home_used .. "% "))
     end
 })
 
---[[ Mail IMAP check
 -- commented because it needs to be set before use
 local mailicon = wibox.widget.imagebox()
 local mail = lain.widget.imap({
     timeout  = 180,
-    server   = "server",
-    mail     = "mail",
-    password = "keyring get mail",
+    server   = "imap.gmail.com",
+    mail     = "maxime.vaude@gmail.com",
+    password = "ChloeMyLove69",
+    is_plain = true,
     settings = function()
         if mailcount > 0 then
             mailicon:set_image(theme.widget_mail)
@@ -153,7 +154,6 @@ local mail = lain.widget.imap({
         end
     end
 })
---]]
 
 -- CPU
 local cpuicon = wibox.widget.imagebox(theme.widget_cpu)
@@ -185,16 +185,18 @@ local bat = lain.widget.bat({
     end
 })
 
--- ALSA volume
+-- PulseAudio volume
 local volicon = wibox.widget.imagebox(theme.widget_vol)
-theme.volume = lain.widget.alsa({
+theme.volume = lain.widget.pulseaudio({
     settings = function()
-        if volume_now.status == "off" then
-            volume_now.level = volume_now.level .. "M"
-        end
+        vlevel = volume_now.left .. "-" .. volume_now.right .. "% | " .. volume_now.device
+	if volume_now.muted == "yes" then
+            vlevel = vlevel .. "M"
+	end
 
-        widget:set_markup(markup.fontfg(theme.font, "#7493d2", volume_now.level .. "% "))
-    end
+        widget:set_markup(markup.fontfg(theme.font, "#7493d2", vlevel .. "% "))
+    end,
+    cmd = "pacmd list-sinks | sed -n -e '/*/,$p' | tr -d '*' | sed -n -e '/base volume/d' -e '/volume:/p' -e '/device\\.string/p' -e '/muted:/p' -e '/index:/p'"
 })
 
 -- Net
@@ -299,8 +301,8 @@ function theme.at_screen_connect(s)
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
             wibox.widget.systray(),
-            --mailicon,
-            --mail.widget,
+            mailicon,
+            mail.widget,
             netdownicon,
             netdowninfo,
             netupicon,
@@ -317,8 +319,10 @@ function theme.at_screen_connect(s)
             theme.weather.widget,
             tempicon,
             temp.widget,
-            baticon,
-            bat.widget,
+            --[[
+	    baticon,
+	    bat.widget,
+            --]]
             clockicon,
             mytextclock,
         },

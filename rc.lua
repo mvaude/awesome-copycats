@@ -59,7 +59,7 @@ run_once({ "unclutter -root" }) -- entries must be comma-separated
 -- }}}
 
 -- {{{ Variable definitions
-local chosen_theme = "multicolor"
+local chosen_theme = "powerarrow"
 local modkey       = "Mod4"
 local altkey       = "Mod1"
 local terminal     = "termite"
@@ -352,34 +352,34 @@ globalkeys = awful.util.table.join(
     awful.key({ altkey, }, "h", function () if beautiful.fs then beautiful.fs.show(7) end end),
     awful.key({ altkey, }, "w", function () if beautiful.weather then beautiful.weather.show(7) end end),
 
-    -- ALSA volume control
+    -- PulseAudio volume control
     awful.key({ altkey }, "Up",
         function ()
-            os.execute(string.format("amixer -q set %s 1%%+", beautiful.volume.channel))
+            os.execute(string.format("pactl set-sink-volume %s +1%%", beautiful.volume.device))
             beautiful.volume.update()
         end),
     awful.key({ altkey }, "Down",
         function ()
-            os.execute(string.format("amixer -q set %s 1%%-", beautiful.volume.channel))
+            os.execute(string.format("pactl set-sink-volume %s -1%%", beautiful.volume.device))
             beautiful.volume.update()
         end),
     awful.key({ altkey }, "m",
         function ()
-            os.execute(string.format("amixer -q set %s toggle", beautiful.volume.togglechannel or beautiful.volume.channel))
+            os.execute(string.format("pactl set-sink-mute %s toggle", beautiful.volume.device))
             beautiful.volume.update()
         end),
     awful.key({ altkey, "Control" }, "m",
         function ()
-            os.execute(string.format("amixer -q set %s 100%%", beautiful.volume.channel))
+            os.execute(string.format("pactl set-sink-volume %s 100%%", beautiful.volume.device))
             beautiful.volume.update()
         end),
     awful.key({ altkey, "Control" }, "0",
         function ()
-            os.execute(string.format("amixer -q set %s 0%%", beautiful.volume.channel))
+            os.execute(string.format("pactl set-sink-volume %s 0%%", beautiful.volume.device))
             beautiful.volume.update()
         end),
 
-    -- MPD control
+    --[[ MPD control
     awful.key({ altkey, "Control" }, "Up",
         function ()
             awful.spawn.with_shell("mpc toggle")
@@ -412,6 +412,7 @@ globalkeys = awful.util.table.join(
             end
             naughty.notify(common)
         end),
+    --]]
 
     -- Copy primary to clipboard (terminals to gtk)
     awful.key({ modkey }, "c", function () awful.spawn("xsel | xsel -i -b") end),
@@ -427,14 +428,13 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey }, "p", function() menubar.show() end,
               {description = "show the menubar", group = "launcher"})
     --]]
-    --[[ dmenu
-    awful.key({ modkey }, "x", function ()
+    -- dmenu
+    awful.key({ modkey }, "p", function()
         awful.spawn(string.format("dmenu_run -i -fn 'Monospace' -nb '%s' -nf '%s' -sb '%s' -sf '%s'",
         beautiful.bg_normal, beautiful.fg_normal, beautiful.bg_focus, beautiful.fg_focus))
-		end)
-    --]]
+		end),
     -- Prompt
-    awful.key({ modkey }, "r", function () awful.screen.focused().mypromptbox:run() end,
+    awful.key({ modkey }, "r", function() awful.screen.focused().mypromptbox:run() end,
               {description = "run prompt", group = "launcher"}),
 
     awful.key({ modkey }, "x",
@@ -447,7 +447,6 @@ globalkeys = awful.util.table.join(
                   }
               end,
               {description = "lua execute prompt", group = "awesome"})
-    --]]
 )
 
 clientkeys = awful.util.table.join(
